@@ -1,68 +1,4 @@
 import WebKit
-import FirebaseMessaging
-
-class SubscribeMessage {
-    var topic  = ""
-    var eventValue = ""
-    var unsubscribe = false
-    struct Keys {
-        static var TOPIC = "topic"
-        static var UNSUBSCRIBE = "unsubscribe"
-        static var EVENTVALUE = "eventValue"
-    }
-    convenience init(dict: Dictionary<String,Any>) {
-        self.init()
-        if let topic = dict[Keys.TOPIC] as? String {
-            self.topic = topic
-        }
-        if let unsubscribe = dict[Keys.UNSUBSCRIBE] as? Bool {
-            self.unsubscribe = unsubscribe
-        }
-        if let eventValue = dict[Keys.EVENTVALUE] as? String {
-            self.eventValue = eventValue
-        }
-    }
-}
-
-func handleSubscribeTouch(message: WKScriptMessage) {
-  // [START subscribe_topic]
-    let subscribeMessages = parseSubscribeMessage(message: message)
-    if (subscribeMessages.count > 0){
-        let _message = subscribeMessages[0]
-        if (_message.unsubscribe) {
-            Messaging.messaging().unsubscribe(fromTopic: _message.topic) { error in }
-        }
-        else {
-            Messaging.messaging().subscribe(toTopic: _message.topic) { error in }
-        }
-    }
-    
-
-  // [END subscribe_topic]
-}
-
-func parseSubscribeMessage(message: WKScriptMessage) -> [SubscribeMessage] {
-    var subscribeMessages = [SubscribeMessage]()
-    if let objStr = message.body as? String {
-
-        let data: Data = objStr.data(using: .utf8)!
-        do {
-            let jsObj = try JSONSerialization.jsonObject(with: data, options: .init(rawValue: 0))
-            if let jsonObjDict = jsObj as? Dictionary<String, Any> {
-                let subscribeMessage = SubscribeMessage(dict: jsonObjDict)
-                subscribeMessages.append(subscribeMessage)
-            } else if let jsonArr = jsObj as? [Dictionary<String, Any>] {
-                for jsonObj in jsonArr {
-                    let sMessage = SubscribeMessage(dict: jsonObj)
-                    subscribeMessages.append(sMessage)
-                }
-            }
-        } catch _ {
-            
-        }
-    }
-    return subscribeMessages
-}
 
 func returnPermissionResult(isGranted: Bool){
     DispatchQueue.main.async(execute: {
@@ -144,20 +80,6 @@ func checkViewAndEvaluate(event: String, detail: String) {
             checkViewAndEvaluate(event: event, detail: detail)
         }
     }
-}
-
-func handleFCMToken(){
-    DispatchQueue.main.async(execute: {
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                print("Error fetching FCM registration token: \(error)")
-                checkViewAndEvaluate(event: "push-token", detail: "ERROR GET TOKEN")
-            } else if let token = token {
-                print("FCM registration token: \(token)")
-                checkViewAndEvaluate(event: "push-token", detail: "'\(token)'")
-            }
-        }   
-    })
 }
 
 func sendPushToWebView(userInfo: [AnyHashable: Any]){

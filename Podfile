@@ -5,8 +5,7 @@ target 'BulkUp' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  # Add the pod for Firebase Cloud Messaging
-  pod 'Firebase/Messaging'
+  # No external dependencies needed - Firebase removed
 
 end
 
